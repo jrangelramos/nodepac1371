@@ -1,0 +1,65 @@
+
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  labels:
+    "app.kubernetes.io/instance": "nodepac1371"
+    "app.openshift.io/runtime": "nodejs"
+    "boson.dev/function": "true"
+    "boson.dev/runtime": "node"
+    "function.knative.dev": "true"
+    "function.knative.dev/name": "nodepac1371"
+    "function.knative.dev/runtime": "node"
+    
+    tekton.dev/pipeline: nodepac1371-s2i-git-pipeline
+  annotations:
+    # The event we are targeting as seen from the webhook payload
+    # this can be an array too, i.e: [pull_request, push]
+    pipelinesascode.tekton.dev/on-event: "[push]"
+
+    # The branch or tag we are targeting (ie: main, refs/tags/*)
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+
+    # Fetch the pipelie definition from the .tekton directory
+    pipelinesascode.tekton.dev/pipeline: .tekton/pipeline-pac.yaml
+
+    # How many runs we want to keep attached to this event
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+
+    # User defined Annotations
+    
+  generateName: nodepac1371-s2i-git-pipeline-run
+spec:
+  params:
+    - name: gitRepository
+      value: "{{ repo_url }}"
+    - name: gitRevision
+      value: "{{ revision }}"
+    - name: contextDir
+      value: "."
+    - name: imageName
+      value: image-registry.openshift-image-registry.svc:5000/pactest/nodepac1371:latest
+    - name: registry
+      value: image-registry.openshift-image-registry.svc:5000/pactest
+    - name: builderImage
+      value: registry.access.redhat.com/ubi9/nodejs-20-minimal
+    - name: buildEnvs
+      value:
+        - =
+        
+    - name: s2iImageScriptsUrl
+      value: image:///usr/libexec/s2i
+  pipelineRef:
+   name: nodepac1371-s2i-git-pipeline
+  workspaces:
+    - name: source-workspace
+      persistentVolumeClaim:
+        claimName: nodepac1371-s2i-git-pipeline-pvc
+      subPath: source
+    - name: cache-workspace
+      persistentVolumeClaim:
+        claimName: nodepac1371-s2i-git-pipeline-pvc
+      subPath: cache
+    - name: dockerconfig-workspace
+      secret:
+        secretName: nodepac1371-s2i-git-pipeline-secret

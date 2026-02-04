@@ -1,4 +1,12 @@
 specVersion: 0.36.0
 name: nodepac1371
 runtime: node
+registry: image-registry.openshift-image-registry.svc:5000/pactest
 created: 2026-02-04T17:56:57.177862405-03:00
+build:
+  git:
+    url: https://github.com/jrangelramos/nodepac1371
+    revision: main
+  builder: s2i
+deploy:
+  image: image-registry.openshift-image-registry.svc:5000/pactest/nodepac1371:latest
